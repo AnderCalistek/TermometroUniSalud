@@ -49,7 +49,7 @@ def registrar_estudiante(data: EstudianteRegistro, db: Session = Depends(get_db)
     if data.programa not in PROGRAMAS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Programa no válido. Selecciona uno de la lista."
+            detail="Programa no válido. Selecciona uno de la lista."
         )
     
     usuario = AuthService.create_estudiante(db, data.dict())
@@ -63,7 +63,7 @@ def registrar_personal(data: PersonalRegistro, db: Session = Depends(get_db)):
     if data.cargo not in CARGOS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Cargo no válido. Selecciona uno de la lista."
+            detail="Cargo no válido. Selecciona uno de la lista."
         )
     
     usuario = AuthService.create_personal(db, data.dict())
