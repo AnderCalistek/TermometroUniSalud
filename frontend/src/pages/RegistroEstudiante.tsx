@@ -30,6 +30,20 @@ const esquemaRegistro = z.object({
 
 type FormData = z.infer<typeof esquemaRegistro>;
 
+function obtenerMensajeError(error: any): string {
+  const detail = error?.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    return detail.map((item: any) => item?.msg).filter(Boolean).join(' | ');
+  }
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  return 'Error al registrar';
+}
+
 export function RegistroEstudiantePage() {
   const navigate = useNavigate();
   
@@ -45,7 +59,7 @@ export function RegistroEstudiantePage() {
       navigate('/login');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Error al registrar');
+      toast.error(obtenerMensajeError(error));
     }
   });
   

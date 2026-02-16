@@ -29,6 +29,20 @@ const esquemaRegistro = z.object({
 
 type FormData = z.infer<typeof esquemaRegistro>;
 
+function obtenerMensajeError(error: any): string {
+  const detail = error?.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    return detail.map((item: any) => item?.msg).filter(Boolean).join(' | ');
+  }
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  return 'Error al registrar';
+}
+
 export function RegistroPersonalPage() {
   const navigate = useNavigate();
   
@@ -44,7 +58,7 @@ export function RegistroPersonalPage() {
       navigate('/login');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.detail || 'Error al registrar');
+      toast.error(obtenerMensajeError(error));
     }
   });
   
@@ -62,8 +76,8 @@ export function RegistroPersonalPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Registro de Personal</h1>
-          <p className="text-gray-600 mt-2">Crea tu cuenta para acceder al sistema</p>
+          <h1 className="text-3xl font-bold text-gray-900">Registro de Personal Administrativo</h1>
+          <p className="text-gray-600 mt-2">Crea tu cuenta institucional para acceder al sistema</p>
         </div>
         
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
