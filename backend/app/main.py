@@ -15,12 +15,17 @@ app = FastAPI(
 )
 
 # CORS
+# Obtener los orígenes permitidos usando el método helper
+allowed_origins = settings.get_allowed_origins()
+print(f"[CORS] Configurado - Origenes permitidos: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Incluir routers

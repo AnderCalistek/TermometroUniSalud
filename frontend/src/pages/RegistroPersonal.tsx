@@ -29,12 +29,31 @@ const esquemaRegistro = z.object({
 
 type FormData = z.infer<typeof esquemaRegistro>;
 
+const CARGOS_FALLBACK = [
+  "Docente Tiempo Completo",
+  "Docente Hora Cátedra",
+  "Coordinador Académico",
+  "Decano",
+  "Director de Programa",
+  "Psicólogo",
+  "Trabajador Social",
+  "Secretaria/o",
+  "Auxiliar Administrativo",
+  "Servicios Generales",
+  "Vigilancia",
+  "Biblioteca",
+  "Sistemas",
+  "Otro"
+];
+
 export function RegistroPersonalPage() {
   const navigate = useNavigate();
   
-  const { data: cargos = [] } = useQuery({
+  const { data: cargos = CARGOS_FALLBACK, isLoading: cargandoCargos, isError: errorCargos } = useQuery({
     queryKey: ['cargos'],
-    queryFn: authService.obtenerCargos
+    queryFn: authService.obtenerCargos,
+    retry: 2,
+    staleTime: 5 * 60 * 1000 // 5 minutos
   });
   
   const registroMutation = useMutation({
@@ -111,8 +130,13 @@ export function RegistroPersonalPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Cargo <span className="text-red-500">*</span>
               </label>
-              <select {...register('cargo')} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="">Selecciona tu cargo</option>
+              {errorCargos && (
+                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                  Usando lista preestablecida de cargos
+                </div>
+              )}
+              <select {...register('cargo')} disabled={cargandoCargos} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                <option value="">{cargandoCargos ? 'Cargando...' : 'Selecciona tu cargo'}</option>
                 {cargos.map((cargo) => (
                   <option key={cargo} value={cargo}>{cargo}</option>
                 ))}

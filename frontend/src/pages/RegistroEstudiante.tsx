@@ -30,12 +30,27 @@ const esquemaRegistro = z.object({
 
 type FormData = z.infer<typeof esquemaRegistro>;
 
+const PROGRAMAS_FALLBACK = [
+  "Administración de Empresas",
+  "Administración Financiera",
+  "Contaduría Pública",
+  "Ingeniería de Sistemas",
+  "Ingeniería Industrial",
+  "Psicología",
+  "Derecho",
+  "Comunicación Social",
+  "Diseño Gráfico",
+  "Mercadeo y Publicidad"
+];
+
 export function RegistroEstudiantePage() {
   const navigate = useNavigate();
   
-  const { data: programas = [] } = useQuery({
+  const { data: programas = PROGRAMAS_FALLBACK, isLoading: cargandoProgramas, isError: errorProgramas } = useQuery({
     queryKey: ['programas'],
-    queryFn: authService.obtenerProgramas
+    queryFn: authService.obtenerProgramas,
+    retry: 2,
+    staleTime: 5 * 60 * 1000 // 5 minutos
   });
   
   const registroMutation = useMutation({
@@ -151,11 +166,17 @@ export function RegistroEstudiantePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Programa Académico <span className="text-red-500">*</span>
               </label>
+              {errorProgramas && (
+                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                  Usando lista preestablecida de programas
+                </div>
+              )}
               <select
                 {...register('programa')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                disabled={cargandoProgramas}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">Selecciona tu programa</option>
+                <option value="">{cargandoProgramas ? 'Cargando...' : 'Selecciona tu programa'}</option>
                 {programas.map((prog) => (
                   <option key={prog} value={prog}>{prog}</option>
                 ))}

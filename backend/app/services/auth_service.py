@@ -17,7 +17,15 @@ class AuthService:
     
     @staticmethod
     def get_password_hash(password: str) -> str:
-        """Genera hash de la contraseña"""
+        """Genera hash de la contraseña. bcrypt admite máximo 72 bytes."""
+        if isinstance(password, str):
+            pwd_bytes = password.encode("utf-8")
+            if len(pwd_bytes) > 72:
+                # Truncar a 72 bytes sin cortar un carácter UTF-8 por la mitad
+                pwd_bytes = pwd_bytes[:72]
+                while len(pwd_bytes) > 0 and (pwd_bytes[-1] & 0x80) and not (pwd_bytes[-1] & 0x40):
+                    pwd_bytes = pwd_bytes[:-1]
+                password = pwd_bytes.decode("utf-8", errors="replace")
         return pwd_context.hash(password)
     
     @staticmethod
