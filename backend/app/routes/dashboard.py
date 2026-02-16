@@ -7,10 +7,9 @@ from typing import Optional
 from app.config.database import get_db
 from app.models.usuario import Usuario
 from app.models.encuesta import Encuesta
-from app.models.respuesta import Respuesta
 from app.models.alerta import Alerta
 from app.services.export_service import ExportService
-from app.utils.security import get_current_user, require_role
+from app.utils.security import require_role
 
 router = APIRouter()
 

@@ -1,10 +1,8 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models.encuesta import Encuesta
 from app.models.usuario import Usuario
-from app.models.respuesta import Respuesta
 from app.models.alerta import Alerta
 import io
 
@@ -124,7 +122,7 @@ class ExportService:
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except:
+                except TypeError:
                     pass
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width

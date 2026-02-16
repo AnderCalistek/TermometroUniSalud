@@ -7,7 +7,7 @@ from app.models.usuario import Usuario
 from app.models.encuesta import Encuesta
 from app.models.respuesta import Respuesta
 from app.models.alerta import Alerta
-from app.schemas.encuesta import EncuestaCreate, EncuestaResponse, EncuestaDetalle
+from app.schemas.encuesta import EncuestaCreate, EncuestaResponse
 from app.services.who5_service import WHO5Service
 from app.utils.security import get_current_user
 
