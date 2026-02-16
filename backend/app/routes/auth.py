@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from app.config.database import get_db
 from app.schemas.usuario import EstudianteRegistro, PersonalRegistro, UsuarioResponse
 from app.services.auth_service import AuthService
-from typing import Dict
+from typing import Dict, Iterable, Optional
+import unicodedata
 
 router = APIRouter()
 
@@ -34,6 +35,7 @@ CARGOS = [
     "Trabajador Social",
     "Secretaria/o",
     "Auxiliar Administrativo",
+    "Administrativo",
     "Servicios Generales",
     "Vigilancia",
     "Biblioteca",
@@ -41,40 +43,60 @@ CARGOS = [
     "Otro"
 ]
 
+
+def _normalizar_texto(valor: str) -> str:
+    texto = unicodedata.normalize("NFKD", valor).encode("ascii", "ignore").decode("utf-8")
+    return " ".join(texto.lower().split())
+
+
+def _buscar_valor_canonico(valor: str, opciones: Iterable[str]) -> Optional[str]:
+    valor_normalizado = _normalizar_texto(valor)
+    for opcion in opciones:
+        if _normalizar_texto(opcion) == valor_normalizado:
+            return opcion
+    return None
+
+
 @router.post("/registro/estudiante", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def registrar_estudiante(data: EstudianteRegistro, db: Session = Depends(get_db)):
     """Registra un nuevo estudiante"""
-    
-    # Validar programa
-    if data.programa not in PROGRAMAS:
+
+    programa_canonico = _buscar_valor_canonico(data.programa, PROGRAMAS)
+    if not programa_canonico:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Programa no válido. Selecciona uno de la lista."
         )
-    
-    usuario = AuthService.create_estudiante(db, data.dict())
+
+    payload = data.model_dump()
+    payload["programa"] = programa_canonico
+    usuario = AuthService.create_estudiante(db, payload)
     return usuario
+
 
 @router.post("/registro/personal", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def registrar_personal(data: PersonalRegistro, db: Session = Depends(get_db)):
     """Registra un nuevo miembro del personal"""
-    
-    # Validar cargo
-    if data.cargo not in CARGOS:
+
+    cargo_canonico = _buscar_valor_canonico(data.cargo, CARGOS)
+    if not cargo_canonico:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cargo no válido. Selecciona uno de la lista."
         )
-    
-    usuario = AuthService.create_personal(db, data.dict())
+
+    payload = data.model_dump()
+    payload["cargo"] = cargo_canonico
+    usuario = AuthService.create_personal(db, payload)
     return usuario
+
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> Dict:
     """Login con correo y contraseña"""
-    
+
     usuario = AuthService.authenticate_user(db, form_data.username, form_data.password)
-    
+
     # Crear token
     access_token = AuthService.create_access_token(
         data={
@@ -83,7 +105,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             "rol": usuario.rol
         }
     )
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -97,10 +119,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         }
     }
 
+
 @router.get("/programas")
 def listar_programas():
     """Lista los programas académicos disponibles"""
     return {"programas": PROGRAMAS}
+
 
 @router.get("/cargos")
 def listar_cargos():
